@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diamond EQ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Diamond EQ</h1>
+  <span id="status" class="muted"></span>
+  <label class="switch" title="Turn all equalization on or off">
+    <input type="checkbox" id="enabled"><span></span><b id="enabledLabel">EQ on</b>
+  </label>
+</header>
+
+<main>
+  <section>
+    <h2>Outputs</h2>
+    <p class="muted">Each output remembers its own profile. Bluetooth devices are recognised automatically;
+      for the headphone jack or a USB DAC, pick whatever is plugged in.</p>
+    <div id="outputs" class="cards"></div>
+  </section>
+
+  <section>
+    <h2>Add a headphone or IEM</h2>
+    <div class="row">
+      <input id="query" type="search" placeholder="Search a model, e.g. “Dawn Ms” or “Bose 700”" autocomplete="off">
+      <span id="indexInfo" class="muted"></span>
+      <button id="refreshIndex" class="ghost" title="Download the latest model lists">Update list</button>
+    </div>
+    <div id="results" class="list"></div>
+    <div id="builder" class="panel" hidden>
+      <h3 id="builderName"></h3>
+      <div id="builderMeasurements" class="chips"></div>
+      <div class="row wrap">
+        <label>Filters <select id="optBands">
+          <option>6</option><option>8</option><option selected>10</option><option>12</option><option>15</option><option>20</option>
+        </select></label>
+        <label>Volume loss limit <select id="optLoss">
+          <option value="">None: always match exactly</option>
+          <option value="9" selected>9 dB (only trims extreme cases)</option>
+          <option value="6">6 dB</option><option value="4">4 dB</option><option value="3">3 dB</option>
+        </select></label>
+        <label>Use on <select id="optOutput"></select></label>
+        <button id="create">Create EQ</button>
+      </div>
+      <p id="builderMsg" class="muted"></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Profiles</h2>
+    <div id="profiles" class="list"></div>
+    <div id="detail" class="panel" hidden>
+      <div class="row wrap">
+        <h3 id="detailName"></h3>
+        <span class="grow"></span>
+        <button class="ghost" data-export="apo">Equalizer APO</button>
+        <button class="ghost" data-export="graphiceq">GraphicEQ / Wavelet</button>
+        <button class="ghost" data-export="json">JSON</button>
+        <button class="ghost" id="verify" title="Play test noise through a silent output and measure the applied EQ">Verify</button>
+        <button class="ghost danger" id="delete">Delete</button>
+      </div>
+      <p id="detailStats" class="muted"></p>
+      <div class="legend">
+        <span><i style="background:var(--raw)"></i>Measured</span>
+        <span><i style="background:var(--target)"></i>Diamond target</span>
+        <span><i style="background:var(--result)"></i>Equalized</span>
+      </div>
+      <svg id="plotResponse" viewBox="0 0 900 320" role="img" aria-label="Frequency response"></svg>
+      <div class="legend"><span><i style="background:var(--eq)"></i>EQ applied (including preamp)</span></div>
+      <svg id="plotEq" viewBox="0 0 900 200" role="img" aria-label="Applied EQ"></svg>
+      <div class="row wrap">
+        <label>Filters <select id="refitBands">
+          <option>6</option><option>8</option><option>10</option><option>12</option><option>15</option><option>20</option>
+        </select></label>
+        <label>Volume loss limit <select id="refitLoss">
+          <option value="">None: always exact</option><option value="9">9 dB</option><option value="6">6 dB</option>
+          <option value="4">4 dB</option><option value="3">3 dB</option>
+        </select></label>
+        <button id="refit" class="ghost">Recalculate</button>
+        <span id="detailMsg" class="muted"></span>
+      </div>
+      <table id="filters"></table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Use an existing preset</h2>
+    <p class="muted">Paste a parametric EQ in Equalizer APO format (for example the file peqdb.com exports).
+      Its filters are used unchanged; only the preamp is recalculated.</p>
+    <div class="row wrap">
+      <input id="importName" placeholder="Name">
+      <button id="importBtn" class="ghost">Import</button>
+    </div>
+    <textarea id="importText" rows="5" placeholder="Preamp: -6.0 dB&#10;Filter 1: ON PK Fc 105 Hz Gain 3.0 dB Q 0.7"></textarea>
+  </section>
+
+  <section>
+    <h2>Phone</h2>
+    <p class="muted" id="phoneInfo"></p>
+    <div class="row"><button id="usbLink" class="ghost">Link phone over USB</button><span id="phoneMsg" class="muted"></span></div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

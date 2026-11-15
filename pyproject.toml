@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "diamondeq"
+version = "0.1.0"
+description = "Equalize headphones and IEMs to the PEQdB Diamond target on PipeWire and Android"
+requires-python = ">=3.11"
+dependencies = ["numpy", "scipy"]
+
+[project.scripts]
+diamondeq = "diamondeq.cli:main"
+
+[tool.setuptools]
+packages = ["diamondeq"]
+
+[tool.setuptools.package-data]
+diamondeq = ["data/*.csv", "web/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
