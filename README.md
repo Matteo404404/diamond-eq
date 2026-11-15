@@ -89,6 +89,12 @@ needs "Maximum" (171 ms); "Balanced" (43 ms) keeps video in sync at the cost of 
 `tests/test_android_engine.py` models the engine from the AOSP source and checks these figures.
 Players that bypass Android's mixer (bit-perfect USB modes, some offload paths) bypass the EQ too.
 
+**Phone loudness.** The preamp exists so a full-scale signal cannot clip, which makes music quieter
+at the same volume setting. On wired and USB outputs Android applies the volume digitally, so
+whatever the volume slider is turned down by is unused headroom. "Keep the loudness" (on by default)
+adds that back, up to the level music has without EQ, and withdraws it as the volume approaches
+maximum. Bluetooth is excluded because the headphones apply the volume themselves.
+
 ## Layout
 
 ```

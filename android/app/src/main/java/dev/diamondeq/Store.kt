@@ -17,6 +17,11 @@ class Store(context: Context) {
         get() = Precision.entries.getOrElse(prefs.getInt("precision", Precision.PRECISE.ordinal)) { Precision.PRECISE }
         set(v) = prefs.edit().putInt("precision", v.ordinal).apply()
 
+    /** Make up for the EQ's level drop from unused volume headroom (wired and USB outputs). */
+    var keepLoudness: Boolean
+        get() = prefs.getBoolean("keepLoudness", true)
+        set(v) = prefs.edit().putBoolean("keepLoudness", v).apply()
+
     var lastSync: Long
         get() = prefs.getLong("lastSync", 0L)
         private set(v) = prefs.edit().putLong("lastSync", v).apply()

@@ -7,7 +7,16 @@ import android.media.AudioManager
 import android.os.Build
 
 /** The device music is currently played through. */
-data class Output(val key: String, val label: String, val kind: String) {
+data class Output(
+    val key: String,
+    val label: String,
+    val kind: String,
+    /** AudioDeviceInfo type, needed to look up this output's volume curve. */
+    val type: Int = AudioDeviceInfo.TYPE_BUILTIN_SPEAKER,
+) {
+    /** Outputs whose volume Android applies digitally (not inside the headphones). */
+    val softwareVolume: Boolean get() = kind == USB || kind == WIRED
+
     companion object {
         const val BLUETOOTH = "bluetooth"
         const val USB = "usb"
@@ -29,6 +38,10 @@ data class Output(val key: String, val label: String, val kind: String) {
 
         private fun of(d: AudioDeviceInfo): Output {
             val name = d.productName?.toString()?.trim().orEmpty()
+            return describe(d, name).copy(type = d.type)
+        }
+
+        private fun describe(d: AudioDeviceInfo, name: String): Output {
             return when (d.type) {
                 in BT_TYPES -> {
                     // Android anonymises the address for apps without the Bluetooth permission.

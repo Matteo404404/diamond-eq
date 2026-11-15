@@ -114,6 +114,20 @@ class MainActivity : Activity() {
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
         }
+        val keepLoudness = Switch(this).apply {
+            text = "Keep the loudness"
+            isChecked = store.keepLoudness
+            setOnCheckedChangeListener { _, on ->
+                store.keepLoudness = on
+                EqService.sync(this@MainActivity)
+            }
+        }
+        val keepLoudnessHelp = TextView(this).apply {
+            text = "EQ lowers the level so boosted notes cannot clip. On wired and USB outputs this adds it back " +
+                "from the part of the volume range you are not using. Close to full volume it fades out again."
+            alpha = 0.7f
+            textSize = 13f
+        }
         syncInfo = TextView(this).apply { alpha = 0.7f }
         syncButton = Button(this).apply {
             text = "Sync with PC"
@@ -127,6 +141,9 @@ class MainActivity : Activity() {
         column.addView(chooser, wide)
         column.addView(curve, wide)
         column.addView(statusText, wide)
+        column.addView(label("VOLUME"))
+        column.addView(keepLoudness, wide)
+        column.addView(keepLoudnessHelp, wide)
         column.addView(label("ACCURACY IN THE BASS VS. DELAY"))
         column.addView(precision, wide)
         column.addView(label("PROFILES FROM THE PC"))
@@ -145,6 +162,9 @@ class MainActivity : Activity() {
         curve.visibility = if (chosen != null) View.VISIBLE else View.GONE
         statusText.text = when {
             !store.enabled -> "The equalizer is switched off."
+            status.profile != null && status.makeUpDb > 0.05 ->
+                "Active: %d filters. Loudness kept with %+.1f dB from spare volume headroom.".format(
+                    status.profile.filters.size, status.makeUpDb)
             status.profile != null -> "Active: preamp %+.1f dB, %d filters.".format(status.profile.preampDb, status.profile.filters.size)
             else -> status.message
         }

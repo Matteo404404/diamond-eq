@@ -48,6 +48,8 @@ data class Profile(
     val source: String,
     val preampDb: Double,
     val filters: List<Filter>,
+    /** How much quieter (negative) typical music plays through this profile, preamp included. */
+    val loudnessChangeDb: Double = 0.0,
 ) {
     /** EQ gain in dB at [freq], preamp included. */
     fun gainDb(freq: Double): Double = preampDb + filters.sumOf { it.responseDb(freq) }
@@ -63,6 +65,7 @@ data class Profile(
                 name = o.getString("name"),
                 source = sites.joinToString(", "),
                 preampDb = o.getDouble("preamp_db"),
+                loudnessChangeDb = o.optJSONObject("stats")?.optDouble("loudness_change_db", 0.0) ?: 0.0,
                 filters = (0 until fs.length()).map {
                     val f = fs.getJSONObject(it)
                     Filter(f.getString("type"), f.getDouble("fc"), f.getDouble("gain"), f.getDouble("q"))
@@ -71,6 +74,18 @@ data class Profile(
         }
     }
 }
+
+/**
+ * Gain in dB (0 or more) to add on top of a profile's preamp so music keeps the
+ * loudness it has without EQ.
+ *
+ * The preamp is sized so that a full-scale signal cannot clip. When the volume
+ * is applied digitally and is turned down by [volumeAttenuationDb], that much
+ * headroom is unused, and the make-up gain may use it (less 0.5 dB of margin)
+ * without any risk of clipping. At full volume the result is 0.
+ */
+fun makeUpGainDb(profile: Profile, volumeAttenuationDb: Double): Double =
+    max(0.0, minOf(-profile.loudnessChangeDb, volumeAttenuationDb - 0.5))
 
 /**
  * How finely Android's equalizer resolves the bass. The engine works on blocks
