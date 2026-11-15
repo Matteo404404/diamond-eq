@@ -83,16 +83,21 @@ def parse_apo(text: str) -> list[Filter]:
     return out
 
 
-def from_apo(name: str, text: str) -> dict:
+def from_apo(name: str, text: str, options: dict | None = None) -> dict:
     """Profile from an existing parametric EQ (e.g. a preset exported from peqdb.com).
     The filters are used as they are; only the preamp is recomputed tightly."""
-    filters = parse_apo(text)
-    preamp = optimizer.safe_preamp(filters)
+    return from_filters(name, parse_apo(text), options)
+
+
+def from_filters(name: str, filters: list[Filter], options: dict | None = None) -> dict:
+    boost = optimizer.FitOptions.from_dict(options).boost_db
+    preamp, used = optimizer.apply_boost(filters, boost)
     eq = response_db(filters, curves.grid()) + preamp
     return {
         "version": VERSION, "id": slug(f"{name} imported"), "name": name, "kind": "imported", "sources": [],
-        "options": {}, "preamp_db": round(preamp, 2), "filters": [f.to_dict() for f in filters],
-        "stats": {"preamp_db": round(preamp, 2), "loudness_change_db": round(curves.music_weighted_level(eq), 2)},
+        "options": {"boost_db": boost}, "preamp_db": round(preamp, 2), "filters": [f.to_dict() for f in filters],
+        "stats": {"preamp_db": round(preamp, 2), "safe_preamp_db": round(preamp - used, 2), "boost_db": round(used, 2),
+                  "loudness_change_db": round(curves.music_weighted_level(eq), 2)},
         "curves": _curves_block(None, filters, preamp),
         "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
     }

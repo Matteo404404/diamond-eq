@@ -128,7 +128,7 @@ $("create").onclick = async () => {
   try {
     const prof = await api("/api/profile/create", {
       name: model.name, kind: model.kind, measurements: picks, output: $("optOutput").value || null,
-      options: { bands: +$("optBands").value, max_loss_db: $("optLoss").value ? +$("optLoss").value : null },
+      options: { bands: +$("optBands").value, max_loss_db: $("optLoss").value ? +$("optLoss").value : null, boost_db: +$("optBoost").value },
     });
     $("builderMsg").textContent = "Done.";
     await refresh();
@@ -171,10 +171,14 @@ function showProfile(p) {
   if (s.loudness_change_db !== undefined) parts.push(`music plays about ${Math.abs(s.loudness_change_db).toFixed(1)} dB ${s.loudness_change_db < 0 ? "quieter" : "louder"}`);
   if (s.error_rms_db) parts.push("deviation from target: " + Object.entries(s.error_rms_db).map(([k, v]) => `${k} Hz ${v} dB`).join(", "));
   if (s.limited) parts.push(`limited (an exact match would cost ${s.exact_loss_db} dB)`);
+  if (s.boost_db > 0) parts.push(`extra loudness +${s.boost_db} dB (where the lower graph is above 0 dB, peaks can clip)`);
   $("detailStats").textContent = parts.join(" · ");
   $("refitBands").value = (p.options && p.options.bands) || 10;
   $("refitLoss").value = p.options && p.options.max_loss_db != null ? String(p.options.max_loss_db) : "";
-  $("refit").hidden = !(p.sources && p.sources.length);
+  const measured = !!(p.sources && p.sources.length);
+  $("refitBands").parentElement.hidden = !measured; // an imported preset keeps its filters
+  $("refitLoss").parentElement.hidden = !measured;
+  $("refitBoost").value = String((p.options && p.options.boost_db) || 0);
   const c = p.curves;
   const hasMeasurement = !!c.measurement;
   $("plotResponse").style.display = hasMeasurement ? "" : "none";
@@ -225,7 +229,7 @@ document.querySelectorAll("[data-export]").forEach((b) => {
 $("refit").onclick = async () => {
   $("detailMsg").textContent = "Fitting…";
   try {
-    showProfile(await api("/api/profile/refit", { id: current.id, options: { bands: +$("refitBands").value, max_loss_db: $("refitLoss").value ? +$("refitLoss").value : null } }));
+    showProfile(await api("/api/profile/refit", { id: current.id, options: { bands: +$("refitBands").value, max_loss_db: $("refitLoss").value ? +$("refitLoss").value : null, boost_db: +$("refitBoost").value } }));
     refresh();
   } catch (e) { $("detailMsg").textContent = e.message; }
 };

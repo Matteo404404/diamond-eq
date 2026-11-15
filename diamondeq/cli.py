@@ -67,7 +67,8 @@ def cmd_add(args):
     chosen = ms if args.all else ms[:1]
     print(f"{model['name']}: using " + ", ".join(f"{m['site']} {m['variant']}".strip() for m in chosen))
     prof = profile.create(model["name"], model["kind"], chosen,
-                          {"bands": args.bands, "max_loss_db": None if args.exact else args.max_loss})
+                          {"bands": args.bands, "max_loss_db": None if args.exact else args.max_loss,
+                           "boost_db": args.boost})
     profile.save(prof)
     _describe(prof)
     if args.output:
@@ -111,7 +112,7 @@ def cmd_export(args):
 
 
 def cmd_import(args):
-    prof = profile.from_apo(args.name, Path(args.file).read_text())
+    prof = profile.from_apo(args.name, Path(args.file).read_text(), {"boost_db": args.boost})
     profile.save(prof)
     _describe(prof)
 
@@ -170,6 +171,8 @@ def main(argv=None):
     p.add_argument("--bands", type=int, default=10)
     p.add_argument("--max-loss", type=float, default=9.0, help="limit the loudness drop in dB (default 9)")
     p.add_argument("--exact", action="store_true", help="always match the target exactly, whatever it costs")
+    p.add_argument("--boost", type=float, default=0.0,
+                   help="extra loudness in dB above the never-clips level (2 is free on real music, 6 clips rare peaks)")
     p.add_argument("--output", help="assign to this output (name fragment, or 'default')")
     p.set_defaults(fn=cmd_add)
     p = sub.add_parser("assign", help="choose the profile of an output")
@@ -186,6 +189,7 @@ def main(argv=None):
     p = sub.add_parser("import", help="use an existing parametric EQ file (e.g. exported from peqdb.com)")
     p.add_argument("name")
     p.add_argument("file")
+    p.add_argument("--boost", type=float, default=0.0, help="extra loudness in dB (see `add --boost`)")
     p.set_defaults(fn=cmd_import)
     p = sub.add_parser("selftest", help="measure the EQ PipeWire applies against the design")
     p.add_argument("id", nargs="?")

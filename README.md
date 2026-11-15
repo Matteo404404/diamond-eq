@@ -31,7 +31,7 @@ diamondeq refresh                                    # update the list of measur
 ```
 
 `diamondeq add` options: `--bands N` (default 10), `--site NAME` (which reviewer's measurement),
-`--all` (average all of them), `--max-loss DB`, `--exact`.
+`--all` (average all of them), `--max-loss DB`, `--exact`, `--boost DB`.
 
 ### Phone
 
@@ -74,6 +74,15 @@ turning everything else down. The profile view shows the cost ("music plays abou
 By default a profile matches the target exactly unless that would cost more than 9 dB; then the
 largest boosts are flattened until it fits. The limit can be lowered (louder, less exact in the
 boosted region) or removed in the UI or with `--max-loss` / `--exact`.
+
+**Extra loudness.** For outputs that are not loud enough even at full volume (typically Bluetooth
+earbuds, whose volume is applied inside the earbuds), a profile can carry extra gain above the
+never-clips level: "Extra loudness" in the UI, `--boost DB` on the command line. The target match is
+unchanged. The never-clips level assumes a full-scale tone at the EQ's highest point; music has
+little level in the treble, where these EQs boost. Measured on 14 full-scale tracks and five
+profiles: at +2 dB nothing clipped; at +4 dB a few peaks in a third of the tracks (under 0.0001% of
+samples, at most 2 dB over); at +6 dB most tracks, under 0.002% of samples, at most 4 dB over.
+The gain is capped where music would get louder than without EQ.
 
 **PC playback.** Each equalized output gets its own `pipewire -c` filter-chain process with exact
 biquads, attached as a WirePlumber smart filter: streams going to that output pass through it, the

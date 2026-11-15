@@ -262,9 +262,14 @@ class Handler(BaseHTTPRequestHandler):
             return prof
         elif path == "/api/profile/refit":
             old = profile.load(body["id"])
-            if not old or not old["sources"]:
-                raise LookupError("profile has no measurement to refit")
-            prof = profile.create(old["name"], old["kind"], old["sources"], body.get("options"))
+            if not old:
+                raise LookupError("unknown profile")
+            if old["sources"]:
+                prof = profile.create(old["name"], old["kind"], old["sources"], body.get("options"))
+            else:  # imported preset: the filters stay, only the gain is recalculated
+                prof = profile.from_filters(old["name"].removesuffix(" imported"), profile.filters_of(old),
+                                            body.get("options"))
+                prof["id"] = old["id"]
             profile.save(prof)
             return prof
         elif path == "/api/profile/import":

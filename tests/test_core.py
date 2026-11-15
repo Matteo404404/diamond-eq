@@ -125,3 +125,19 @@ def test_profile_json_is_plain(monkeypatch):
     json.dumps(prof)
     assert prof["filters"] == [] or max(abs(f["gain"]) for f in prof["filters"]) < 0.5
     assert abs(prof["preamp_db"]) < 0.8
+
+
+def test_boost_raises_preamp_but_never_above_original_loudness():
+    g = curves.grid()
+    dull = _headphone(response_db([Filter("HSC", 4000, -10.0, 0.7)], g))  # needs a +10 dB treble boost
+    plain = optimizer.fit(dull, optimizer.FitOptions(max_loss_db=None))
+    boosted = optimizer.fit(dull, optimizer.FitOptions(max_loss_db=None, boost_db=4.0))
+    assert boosted.preamp_db == pytest.approx(plain.preamp_db + 4.0, abs=0.05)
+    assert boosted.stats["safe_preamp_db"] == pytest.approx(plain.preamp_db, abs=0.05)
+    assert [f.to_dict() for f in boosted.filters] == [f.to_dict() for f in plain.filters]
+    # a cut-only EQ loses almost no level, so there is next to nothing to give back
+    cut_only = [Filter("PK", 3000, -4.0, 2.0)]
+    preamp, used = optimizer.apply_boost(cut_only, 6.0)
+    assert used < 1.0 and curves.music_weighted_level(response_db(cut_only, g) + preamp) <= 0.01
+    imported = profile.from_apo("x", "Filter 1: ON HSC Fc 4000 Hz Gain 10 dB Q 0.7", {"boost_db": 6})
+    assert imported["stats"]["boost_db"] == 6.0 and imported["options"]["boost_db"] == 6.0

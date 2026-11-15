@@ -43,6 +43,12 @@
           <option value="9" selected>9 dB (only trims extreme cases)</option>
           <option value="6">6 dB</option><option value="4">4 dB</option><option value="3">3 dB</option>
         </select></label>
+        <label>Extra loudness <select id="optBoost">
+          <option value="0">None: can never clip</option>
+          <option value="2">+2 dB: no clipping on real music</option>
+          <option value="4">+4 dB: rare peaks clip slightly</option>
+          <option value="6">+6 dB: some peaks clip, rarely audible</option>
+        </select></label>
         <label>Use on <select id="optOutput"></select></label>
         <button id="create">Create EQ</button>
       </div>
@@ -79,6 +85,12 @@
         <label>Volume loss limit <select id="refitLoss">
           <option value="">None: always exact</option><option value="9">9 dB</option><option value="6">6 dB</option>
           <option value="4">4 dB</option><option value="3">3 dB</option>
+        </select></label>
+        <label>Extra loudness <select id="refitBoost">
+          <option value="0">None: can never clip</option>
+          <option value="2">+2 dB: no clipping on real music</option>
+          <option value="4">+4 dB: rare peaks clip slightly</option>
+          <option value="6">+6 dB: some peaks clip, rarely audible</option>
         </select></label>
         <button id="refit" class="ghost">Recalculate</button>
         <span id="detailMsg" class="muted"></span>
